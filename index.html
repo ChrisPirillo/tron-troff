@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager / GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1CQ4D3VQ3L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1CQ4D3VQ3L');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TRON TROFF</title>
+    
+    <!-- SEO Metadata -->
+    <meta name="description" content="Immerse yourself in TRON TROFF, an infinite procedural neon landscape. Navigate a dynamic wireframe grid with responsive light cycle controls in this retro-futuristic arcade experience.">
+    <meta name="keywords" content="TRON TROFF, light cycle, arcade game, WebGL, Three.js, procedural generation, infinite runner, neon grid, synthwave, interactive visualization, browser game">
+    <meta name="author" content="Chris Pirillo">
+    <link rel="canonical" href="https://pirillo.com/arcade/tron-troff.html">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pirillo.com/arcade/tron-troff.html">
+    <meta property="og:title" content="TRON TROFF - Infinite Neon Arcade Experience">
+    <meta property="og:description" content="Pilot your light cycle through an infinite, procedurally generated neon grid. Features responsive handling, dynamic visuals, and a retro-futuristic atmosphere.">
+    <meta property="og:image" content="https://pirillo.com/arcade/images/tron-troff.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://pirillo.com/arcade/tron-troff.html">
+    <meta property="twitter:title" content="TRON TROFF - Infinite Neon Arcade Experience">
+    <meta property="twitter:description" content="Pilot your light cycle through an infinite, procedurally generated neon grid. Features responsive handling and dynamic visuals.">
+    <meta property="twitter:image" content="https://pirillo.com/arcade/images/tron-troff.png">
+    <meta property="twitter:site" content="@ChrisPirillo">
+    <meta property="twitter:creator" content="@ChrisPirillo">
+
+    <!-- Resource Hints for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+    <!-- Fonts (Display Swap for FOUT mitigation) -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "TRON TROFF",
+      "url": "https://pirillo.com/arcade/tron-troff.html",
+      "description": "An infinite procedural neon landscape arcade game inspired by Tron light cycles.",
+      "genre": "Arcade",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript and WebGL support",
+      "author": {
+        "@type": "Person",
+        "name": "Chris Pirillo",
+        "url": "https://pirillo.com",
+        "sameAs": [
+            "https://x.com/ChrisPirillo"
+        ]
+      },
+      "image": "https://pirillo.com/arcade/images/tron-troff.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+
+    <style>
+        :root {
+            --primary: #00f3ff;
+            --bg-glass: rgba(8, 12, 18, 0.85);
+            --border: rgba(0, 243, 255, 0.3);
+            --text-main: #e0f7fa;
+            --text-dim: #5c7c8a;
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #000; 
+            user-select: none; 
+            -webkit-user-select: none; 
+            font-family: 'Rajdhani', sans-serif; 
+            touch-action: none; /* Disables browser handling of gestures */
+        }
+        canvas { display: block; } /* Prevents layout shift from inline display */
+        
+        /* Overlay for Transitions */
+        #transition-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Mobile Controls Hint */
+        #mobile-hint {
+            position: fixed;
+            bottom: 10%;
+            width: 100%;
+            text-align: center;
+            color: var(--primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            pointer-events: none;
+            opacity: 0.8;
+            z-index: 500;
+            animation: pulse 2s infinite;
+            transition: opacity 0.5s;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+            display: none; /* Shown via JS if touch detected */
+        }
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        /* Hamburger Button */
+        #menu-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 1001;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 20px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        #menu-btn:hover, #menu-btn:active { 
+            background: rgba(0, 243, 255, 0.15); 
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Settings Panel */
+        #settings-panel {
+            position: fixed;
+            top: 0;
+            right: -380px; /* Hidden by default */
+            width: 360px;
+            max-width: 85vw; /* Responsive width for mobile */
+            height: 100vh;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border);
+            z-index: 1000;
+            transition: right 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            overflow-y: auto;
+            padding: 30px;
+            box-sizing: border-box;
+            color: var(--text-main);
+            box-shadow: -10px 0 40px rgba(0,0,0,0.8);
+        }
+        #settings-panel.open { right: 0; }
+
+        /* Typography */
+        h3 { 
+            color: var(--primary); 
+            margin: 0 0 25px 0; 
+            font-size: 1.8rem; 
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+            margin-left: 10px;
+        }
+
+        /* Controls */
+        .control-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end; /* Right align content */
+            margin-bottom: 14px; 
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .control-row label { 
+            flex: 0 0 110px; /* Fixed width for labels */
+            text-align: right;
+            margin-right: 15px;
+            white-space: nowrap; /* Prevent wrapping */
+            font-size: 0.9rem;
+        }
+        
+        /* Custom Range Slider */
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            outline: none;
+            min-width: 0; /* Prevent overflow */
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px; /* Larger touch target */
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.3); }
+
+        /* Color Picker */
+        input[type="color"] { 
+            border: 1px solid var(--border); 
+            width: 40px; 
+            height: 30px; 
+            padding: 2px; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Checkbox */
+        input[type="checkbox"] {
+            accent-color: var(--primary);
+            transform: scale(1.4);
+            cursor: pointer;
+            margin-right: auto; /* Push to left if flexed right */
+            width: 20px;
+            height: 20px;
+        }
+
+        .value-display { 
+            width: 45px; 
+            text-align: right; 
+            font-family: 'Rajdhani', monospace; 
+            color: var(--primary); 
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        /* Buttons */
+        .btn-row { display: flex; gap: 12px; margin-bottom: 30px; }
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(45deg, rgba(0, 243, 255, 0.1), transparent);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Rajdhani', sans-serif;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        .action-btn:hover, .action-btn:active { 
+            background: rgba(0, 243, 255, 0.2); 
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            text-shadow: 0 0 5px var(--primary);
+        }
+        .action-btn:active { transform: translateY(1px); }
+
+        /* Scrollbar */
+        #settings-panel::-webkit-scrollbar { width: 4px; }
+        #settings-panel::-webkit-scrollbar-track { background: transparent; }
+        #settings-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    </style>
+    <!-- Reliable Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Transition Overlay -->
+    <div id="transition-overlay"></div>
+    
+    <!-- Mobile Hint -->
+    <div id="mobile-hint">
+        <span>&larr; Touch Sides to Steer &rarr;</span>
+    </div>
+
+    <!-- UI Elements wrapped in nav/main semantics where appropriate -->
+    <nav>
+        <!-- Accessible Button Label -->
+        <button id="menu-btn" aria-label="Open Settings Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+    </nav>
+
+    <aside id="settings-panel">
+        <h3>TRON TROFF</h3>
+        
+        <div class="btn-row">
+            <button class="action-btn" id="btn-random">Randomize</button>
+            <button class="action-btn" id="btn-reset">Reset</button>
+        </div>
+
+        <div class="section-title">Automation</div>
+        <div class="control-row">
+            <label for="ctrl-autoplay">Auto-Pilot</label>
+            <input type="checkbox" id="ctrl-autoplay">
+            <span style="flex:1"></span> <!-- Spacer -->
+        </div>
+
+        <div id="dynamic-controls">
+            <!-- Controls generated by JS -->
+        </div>
+    </aside>
+
+    <!-- Main Application Logic -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
+
+        // --- Configuration Schema ---
+        const CONFIG_SCHEMA = {
+            TERRAIN: {
+                gridSize: { val: 600, min: 200, max: 1200, step: 50, label: "Render Dist" },
+                gridSpacing: { val: 6, min: 2, max: 20, step: 1, label: "Grid Scale" },
+                waveHeight: { val: 35, min: 0, max: 150, step: 5, label: "Elevation" },
+                waveScale: { val: 0.015, min: 0.002, max: 0.08, step: 0.001, label: "Frequency" },
+                noiseDetail: { val: 0.5, min: 0, max: 1, step: 0.1, label: "Complexity" },
+                threshold: { val: 0.15, min: -0.5, max: 0.5, step: 0.05, label: "Sea Level" },
+            },
+            PHYSICS: {
+                speed: { val: 0.5, min: 0, max: 3.0, step: 0.1, label: "Velocity" },
+                turnSpeed: { val: 0.03, min: 0.01, max: 0.4, step: 0.01, label: "Cornering" }, // Reduced max from 1.5 to 0.4
+                camDamping: { val: 0.05, min: 0.01, max: 0.2, step: 0.01, label: "Cam Lag" },
+            },
+            VISUALS: {
+                gridColor: { val: "#00ffff", type: "color", label: "Grid Color" },
+                trailColor: { val: "#ff0033", type: "color", label: "Trail Color" },
+                skyColor: { val: "#000000", type: "color", label: "Sky Color" },
+                trailLength: { val: 1500, min: 100, max: 6000, step: 100, label: "Trail Len" },
+                trailWidth: { val: 0.6, min: 0.1, max: 3.0, step: 0.1, label: "Trail Width" },
+                bloomStrength: { val: 2.0, min: 0, max: 6, step: 0.1, label: "Glow Str" },
+                bloomRadius: { val: 0.5, min: 0, max: 2.0, step: 0.1, label: "Glow Rad" },
+                fogDensity: { val: 0.0015, min: 0, max: 0.01, step: 0.0001, label: "Fog" },
+            },
+            CAMERA: {
+                camHeight: { val: 40, min: 5, max: 150, step: 5, label: "Altitude" },
+                camDist: { val: 80, min: 10, max: 250, step: 5, label: "Distance" },
+                fov: { val: 60, min: 30, max: 140, step: 1, label: "F.O.V." }
+            }
+        };
+
+        // Flattened runtime config
+        const CONFIG = {};
+        const simplex = new SimplexNoise(); // For auto-pilot wandering
+
+        // --- Globals ---
+        let scene, camera, renderer, composer, bloomPass;
+        let gridMesh, playerMesh, trailMesh;
+        let clock = new THREE.Clock();
+        
+        const gridState = {
+            geometry: null,
+            positions: null,
+            lastSize: 0,
+            lastSpacing: 0
+        };
+
+        const player = {
+            pos: new THREE.Vector3(0, 0, 0),
+            dir: new THREE.Vector3(0, 0, 1),
+            angle: 0,
+            path: []
+        };
+
+        const inputs = { left: false, right: false };
+        // Touch tracking
+        const activeTouches = new Map();
+        let hasInteracted = false;
+
+        // --- Initialization ---
+        
+        function initializeConfig() {
+            // Load defaults from nested schema
+            for (const section in CONFIG_SCHEMA) {
+                for (const key in CONFIG_SCHEMA[section]) {
+                    CONFIG[key] = CONFIG_SCHEMA[section][key].val;
+                }
+            }
+            CONFIG.autoPlay = false; // Starts false
+        }
+
+        initializeConfig(); 
+        initUI(); 
+
+        initThree();
+        animate();
+
+        // --- Core Three.js Setup ---
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(CONFIG.skyColor);
+            scene.fog = new THREE.FogExp2(CONFIG.skyColor, CONFIG.fogDensity);
+
+            camera = new THREE.PerspectiveCamera(CONFIG.fov, window.innerWidth / window.innerHeight, 1, 3000);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+            renderer.toneMapping = THREE.ReinhardToneMapping;
+            document.body.appendChild(renderer.domElement);
+
+            // Add Touch Listeners to Canvas
+            const canvas = renderer.domElement;
+            canvas.addEventListener('touchstart', handleTouch, { passive: false });
+            canvas.addEventListener('touchmove', handleTouch, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+            canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+            // Check for touch support to show hint
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                document.getElementById('mobile-hint').style.display = 'block';
+            }
+
+            createInfiniteGrid();
+
+            const pGeo = new THREE.BoxGeometry(0.5, 0.5, 1.5);
+            const pMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            playerMesh = new THREE.Mesh(pGeo, pMat);
+            scene.add(playerMesh);
+
+            createTrailSystem();
+
+            const renderScene = new RenderPass(scene, camera);
+            bloomPass = new UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight), 
+                CONFIG.bloomStrength, CONFIG.bloomRadius, 0.1
+            );
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('keydown', (e) => onKey(e, true));
+            window.addEventListener('keyup', (e) => onKey(e, false));
+
+            player.pos.y = getTerrainHeight(0, 0);
+        }
+
+        function getTerrainHeight(x, z) {
+            const ws = CONFIG.waveScale;
+            // Primary rolling hills
+            let val = Math.sin(x * ws) * Math.cos(z * ws * 0.85);
+            
+            // Secondary layer (controlled by Noise Detail)
+            if (CONFIG.noiseDetail > 0.1) {
+                val += Math.sin((x + z) * ws * 2.5) * (0.3 * CONFIG.noiseDetail * 2);
+            }
+            
+            // Tertiary "Digital Noise"
+            if (CONFIG.noiseDetail > 0.5) {
+                val += Math.cos(x * ws * 5.0) * (0.1 * CONFIG.noiseDetail);
+            }
+
+            let height = Math.max(0, val - CONFIG.threshold);
+            height = Math.pow(height, 1.5); 
+            return height * CONFIG.waveHeight;
+        }
+
+        function createInfiniteGrid() {
+            if (gridMesh) {
+                scene.remove(gridMesh);
+                gridMesh.geometry.dispose();
+                gridMesh.material.dispose();
+            }
+
+            const size = CONFIG.gridSize;
+            const step = CONFIG.gridSpacing;
+            
+            gridState.lastSize = size;
+            gridState.lastSpacing = step;
+
+            const vertices = [];
+            for (let x = -size; x <= size; x += step) {
+                for (let z = -size; z < size; z += step) {
+                    vertices.push(x, 0, z); vertices.push(x, 0, z + step);
+                }
+            }
+            for (let z = -size; z <= size; z += step) {
+                for (let x = -size; x < size; x += step) {
+                    vertices.push(x, 0, z); vertices.push(x + step, 0, z);
+                }
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
+
+            const material = new THREE.LineBasicMaterial({ 
+                color: new THREE.Color(CONFIG.gridColor), 
+                transparent: true,
+                opacity: 0.5,
+                blending: THREE.AdditiveBlending
+            });
+
+            gridMesh = new THREE.LineSegments(geometry, material);
+            gridMesh.frustumCulled = false;
+            scene.add(gridMesh);
+            
+            gridState.geometry = geometry;
+            gridState.positions = geometry.attributes.position.array;
+        }
+
+        function updateGrid() {
+            if (CONFIG.gridSize !== gridState.lastSize || CONFIG.gridSpacing !== gridState.lastSpacing) {
+                createInfiniteGrid();
+                return;
+            }
+
+            if (!gridMesh) return;
+            
+            gridMesh.material.color.set(CONFIG.gridColor);
+
+            const positions = gridState.positions;
+            const step = CONFIG.gridSpacing;
+            const size = CONFIG.gridSize;
+            
+            const snapX = Math.floor(player.pos.x / step) * step;
+            const snapZ = Math.floor(player.pos.z / step) * step;
+
+            let i = 0;
+
+            // Z lines
+            for (let xOffset = -size; xOffset <= size; xOffset += step) {
+                const cx = snapX + xOffset;
+                for (let zOffset = -size; zOffset < size; zOffset += step) {
+                    const z1 = snapZ + zOffset;
+                    const z2 = z1 + step;
+                    positions[i++] = cx; positions[i++] = getTerrainHeight(cx, z1); positions[i++] = z1;
+                    positions[i++] = cx; positions[i++] = getTerrainHeight(cx, z2); positions[i++] = z2;
+                }
+            }
+            // X lines
+            for (let zOffset = -size; zOffset <= size; zOffset += step) {
+                const cz = snapZ + zOffset;
+                for (let xOffset = -size; xOffset < size; xOffset += step) {
+                    const x1 = snapX + xOffset;
+                    const x2 = x1 + step;
+                    positions[i++] = x1; positions[i++] = getTerrainHeight(x1, cz); positions[i++] = cz;
+                    positions[i++] = x2; positions[i++] = getTerrainHeight(x2, cz); positions[i++] = cz;
+                }
+            }
+            gridState.geometry.attributes.position.needsUpdate = true;
+        }
+
+        function createTrailSystem() {
+            if (trailMesh) {
+                scene.remove(trailMesh);
+                trailMesh.geometry.dispose();
+                trailMesh.material.dispose();
+            }
+
+            // Allocate buffer for maximum possible length defined in schema
+            const maxSegments = CONFIG_SCHEMA.VISUALS.trailLength.max; 
+            const maxVerts = maxSegments * 6;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(maxVerts * 3);
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
+
+            const material = new THREE.MeshBasicMaterial({ 
+                color: new THREE.Color(CONFIG.trailColor), 
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            trailMesh = new THREE.Mesh(geometry, material);
+            trailMesh.frustumCulled = false; 
+            scene.add(trailMesh);
+        }
+
+        function updateTrail() {
+            trailMesh.material.color.set(CONFIG.trailColor);
+            
+            const width = CONFIG.trailWidth;
+            const p = player.pos.clone();
+            const perp = new THREE.Vector3(-player.dir.z, 0, player.dir.x).normalize().multiplyScalar(width);
+            
+            const pLeft = new THREE.Vector3().copy(p).add(perp); pLeft.y += 0.1;
+            const pRight = new THREE.Vector3().copy(p).sub(perp); pRight.y += 0.1;
+
+            player.path.push({ left: pLeft, right: pRight });
+            
+            // Dynamic length limit
+            if (player.path.length > CONFIG.trailLength) {
+                player.path.shift();
+            }
+
+            if (player.path.length < 2) return;
+
+            const positions = trailMesh.geometry.attributes.position.array;
+            let idx = 0;
+
+            for (let i = 0; i < player.path.length - 1; i++) {
+                const curr = player.path[i];
+                const next = player.path[i+1];
+
+                positions[idx++] = curr.left.x; positions[idx++] = curr.left.y; positions[idx++] = curr.left.z;
+                positions[idx++] = curr.right.x; positions[idx++] = curr.right.y; positions[idx++] = curr.right.z;
+                positions[idx++] = next.left.x; positions[idx++] = next.left.y; positions[idx++] = next.left.z;
+
+                positions[idx++] = next.left.x; positions[idx++] = next.left.y; positions[idx++] = next.left.z;
+                positions[idx++] = curr.right.x; positions[idx++] = curr.right.y; positions[idx++] = curr.right.z;
+                positions[idx++] = next.right.x; positions[idx++] = next.right.y; positions[idx++] = next.right.z;
+            }
+            trailMesh.geometry.setDrawRange(0, idx / 3);
+            trailMesh.geometry.attributes.position.needsUpdate = true;
+        }
+
+        function updatePlayer() {
+            // Steering Logic
+            if (CONFIG.autoPlay) {
+                // Auto Pilot: Smooth wandering using sine waves over time
+                const time = clock.getElapsedTime();
+                // Combine a slow wave for general direction and faster wave for wiggles
+                const steer = Math.sin(time * 0.5) * 0.6 + Math.sin(time * 1.5) * 0.4;
+                // Auto pilot always uses a smooth turn so it doesn't look jerky
+                player.angle += steer * 0.03; 
+            } else {
+                // Manual Control
+                if (inputs.left) player.angle += CONFIG.turnSpeed;
+                if (inputs.right) player.angle -= CONFIG.turnSpeed;
+            }
+
+            player.dir.set(Math.sin(player.angle), 0, Math.cos(player.angle));
+
+            player.pos.addScaledVector(player.dir, CONFIG.speed);
+            player.pos.y = getTerrainHeight(player.pos.x, player.pos.z) + 0.5;
+
+            playerMesh.position.copy(player.pos);
+            playerMesh.rotation.y = player.angle;
+
+            camera.fov = CONFIG.fov;
+            camera.updateProjectionMatrix();
+
+            const targetPos = player.pos.clone();
+            const offset = new THREE.Vector3(0, CONFIG.camHeight, -CONFIG.camDist);
+            offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.angle);
+            const camPos = targetPos.clone().add(offset);
+            
+            // Dynamic Damping
+            camera.position.lerp(camPos, CONFIG.camDamping);
+            camera.lookAt(player.pos);
+        }
+
+        function updateSceneParams() {
+            if (!scene) return;
+            const sky = new THREE.Color(CONFIG.skyColor);
+            scene.background = sky;
+            scene.fog.color = sky;
+            scene.fog.density = CONFIG.fogDensity;
+            bloomPass.strength = CONFIG.bloomStrength;
+            bloomPass.radius = CONFIG.bloomRadius;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePlayer();
+            updateGrid();
+            updateTrail();
+            updateSceneParams();
+            composer.render();
+        }
+
+        // --- Input Handling ---
+
+        function onKey(e, isDown) {
+            const key = e.code;
+            if (key === 'KeyA' || key === 'ArrowLeft') inputs.left = isDown;
+            if (key === 'KeyD' || key === 'ArrowRight') inputs.right = isDown;
+            if (key === 'Escape' && isDown) closeMenu();
+        }
+
+        function handleTouch(e) {
+            e.preventDefault(); // Stop scrolling/zooming
+
+            // Hide hint on first touch
+            if (!hasInteracted) {
+                hasInteracted = true;
+                const hint = document.getElementById('mobile-hint');
+                hint.style.opacity = '0';
+                setTimeout(() => hint.style.display = 'none', 500);
+            }
+
+            const touches = e.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                activeTouches.set(touch.identifier, touch.clientX);
+            }
+            updateTouchInputs();
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            const touches = e.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                activeTouches.delete(touches[i].identifier);
+            }
+            updateTouchInputs();
+        }
+
+        function updateTouchInputs() {
+            inputs.left = false;
+            inputs.right = false;
+            
+            const midPoint = window.innerWidth / 2;
+            
+            for (const x of activeTouches.values()) {
+                if (x < midPoint) {
+                    inputs.left = true;
+                } else {
+                    inputs.right = true;
+                }
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+
+        // ==========================================
+        // UI & CONTROL LOGIC
+        // ==========================================
+
+        function initUI() {
+            const container = document.getElementById('dynamic-controls');
+            
+            // Nested Loop for Sections
+            for (const section in CONFIG_SCHEMA) {
+                // Section Header
+                const title = document.createElement('div');
+                title.className = 'section-title';
+                title.innerText = section;
+                container.appendChild(title);
+
+                const params = CONFIG_SCHEMA[section];
+                
+                for (const key in params) {
+                    const schema = params[key];
+                    const group = document.createElement('div');
+                    group.className = 'control-row';
+                    
+                    const label = document.createElement('label');
+                    label.innerText = schema.label;
+                    label.setAttribute('for', `input-${key}`); // Accessibility binding
+                    
+                    let input;
+                    let valDisplay;
+
+                    if (schema.type === 'color') {
+                        input = document.createElement('input');
+                        input.type = 'color';
+                        input.value = CONFIG[key];
+                        input.addEventListener('input', (e) => {
+                            CONFIG[key] = e.target.value;
+                        });
+                        // Add spacer to push color picker to right if needed
+                        const spacer = document.createElement('div');
+                        spacer.style.flex = '1';
+                        group.appendChild(label);
+                        group.appendChild(spacer);
+                        group.appendChild(input);
+                    } else {
+                        input = document.createElement('input');
+                        input.type = 'range';
+                        input.min = schema.min;
+                        input.max = schema.max;
+                        input.step = schema.step || (schema.max - schema.min) / 100;
+                        input.value = CONFIG[key];
+                        
+                        valDisplay = document.createElement('span');
+                        valDisplay.className = 'value-display';
+                        valDisplay.innerText = CONFIG[key];
+                        valDisplay.id = `disp-${key}`;
+
+                        input.addEventListener('input', (e) => {
+                            const val = parseFloat(e.target.value);
+                            CONFIG[key] = val;
+                            valDisplay.innerText = val;
+                        });
+                        
+                        group.appendChild(label);
+                        group.appendChild(input);
+                        group.appendChild(valDisplay);
+                    }
+                    
+                    input.id = `input-${key}`;
+                    container.appendChild(group);
+                }
+            }
+
+            document.getElementById('menu-btn').addEventListener('click', toggleMenu);
+            document.getElementById('btn-random').addEventListener('click', () => randomizeSettings(true));
+            document.getElementById('btn-reset').addEventListener('click', () => resetSettings(true));
+            
+            // Auto Play Logic
+            const autoCheck = document.getElementById('ctrl-autoplay');
+            autoCheck.addEventListener('change', (e) => {
+                CONFIG.autoPlay = e.target.checked;
+            });
+
+            document.addEventListener('click', (e) => {
+                const panel = document.getElementById('settings-panel');
+                const btn = document.getElementById('menu-btn');
+                // Check if click is inside panel or on the button
+                if (panel.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)) {
+                    closeMenu();
+                }
+            });
+        }
+
+        function toggleMenu() {
+            document.getElementById('settings-panel').classList.toggle('open');
+        }
+
+        function closeMenu() {
+            document.getElementById('settings-panel').classList.remove('open');
+        }
+
+        function updateUIValues() {
+            for (const section in CONFIG_SCHEMA) {
+                for (const key in CONFIG_SCHEMA[section]) {
+                    const input = document.getElementById(`input-${key}`);
+                    if (input) {
+                        input.value = CONFIG[key];
+                        const disp = document.getElementById(`disp-${key}`);
+                        if (disp) disp.innerText = CONFIG[key];
+                    }
+                }
+            }
+        }
+
+        function triggerTransition(callback) {
+            const overlay = document.getElementById('transition-overlay');
+            overlay.style.opacity = 1;
+            
+            setTimeout(() => {
+                callback(); 
+                requestAnimationFrame(() => {
+                    overlay.style.opacity = 0;
+                });
+            }, 600);
+        }
+
+        function randomizeSettings(withTransition) {
+            const doRandom = () => {
+                // Special Color Logic to prevent washout
+                // 1. Sky Color: Always dark/black (Low lightness)
+                const skyH = Math.random();
+                const skyS = Math.random() * 0.5;
+                const skyL = Math.random() * 0.15; // Max 15% lightness
+                const skyColor = new THREE.Color().setHSL(skyH, skyS, skyL);
+                CONFIG.skyColor = '#' + skyColor.getHexString();
+
+                // 2. Grid & Trail: Always bright (High lightness)
+                const gridH = Math.random();
+                const gridColor = new THREE.Color().setHSL(gridH, 0.8, 0.6); // High sat, medium-high light
+                CONFIG.gridColor = '#' + gridColor.getHexString();
+
+                const trailH = (gridH + 0.5) % 1.0; // Complementary hue
+                const trailColor = new THREE.Color().setHSL(trailH, 1.0, 0.6);
+                CONFIG.trailColor = '#' + trailColor.getHexString();
+
+                for (const section in CONFIG_SCHEMA) {
+                    for (const key in CONFIG_SCHEMA[section]) {
+                        // Skip colors as we handled them above
+                        if (key.includes('Color')) continue;
+
+                        const schema = CONFIG_SCHEMA[section][key];
+                        const range = schema.max - schema.min;
+                        let val = schema.min + Math.random() * range;
+                        
+                        // Special Capping for Bloom to prevent blowout
+                        if (key === 'bloomStrength') {
+                            val = Math.min(val, 2.5); // Cap random bloom at 2.5
+                        }
+
+                        if (schema.step) val = Math.round(val / schema.step) * schema.step;
+                        if (schema.step < 1) val = parseFloat(val.toFixed(4));
+                        CONFIG[key] = val;
+                    }
+                }
+
+                // --- SANITY CHECKS ---
+                // Fix for "Spiky Mess": High Elevation + High Frequency = Bad
+                // If mountains are tall, they must be wide (low frequency)
+                if (CONFIG.waveHeight > 50) {
+                    // Force scale to be low (0.002 to 0.02)
+                    CONFIG.waveScale = 0.002 + (Math.random() * 0.018);
+                    // Re-round to clean decimal
+                    CONFIG.waveScale = parseFloat(CONFIG.waveScale.toFixed(4));
+                }
+
+                updateUIValues();
+            };
+
+            if (withTransition) triggerTransition(doRandom);
+            else doRandom();
+        }
+
+        function resetSettings(withTransition) {
+            const doReset = () => {
+                for (const section in CONFIG_SCHEMA) {
+                    for (const key in CONFIG_SCHEMA[section]) {
+                        CONFIG[key] = CONFIG_SCHEMA[section][key].val;
+                    }
+                }
+                updateUIValues();
+            };
+
+            if (withTransition) triggerTransition(doReset);
+            else doReset();
+        }
+
+    </script>
+</body>
+</html>
